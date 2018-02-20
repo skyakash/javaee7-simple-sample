@@ -102,6 +102,22 @@ under the License.
       <nonProxyHosts>local.net|some.host.com</nonProxyHosts>
     </proxy>
     -->
+      <proxy>
+      <id>httpproxy</id>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>web-proxy.sgp.hpecorp.net</host>
+      <port>8080</port>
+      <nonProxyHosts>local.net|some.host.com</nonProxyHosts>
+    </proxy>
+          <proxy>
+      <id>httpsproxy</id>
+      <active>true</active>
+      <protocol>https</protocol>
+      <host>web-proxy.sgp.hpecorp.net</host>
+      <port>8080</port>
+      <nonProxyHosts>local.net|some.host.com</nonProxyHosts>
+    </proxy>
   </proxies>
 
   <!-- servers
