@@ -2,7 +2,6 @@
 Documentation  Basic docs for suite
 Library  SeleniumLibrary
 Library  XvfbRobot
-Library  Screenshot
 
 *** Variables ***
 
