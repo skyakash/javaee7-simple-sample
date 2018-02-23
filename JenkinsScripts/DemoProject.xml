@@ -1,0 +1,132 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.17">
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <jenkins.model.BuildDiscarderProperty>
+      <strategy class="hudson.tasks.LogRotator">
+        <daysToKeep>30</daysToKeep>
+        <numToKeep>25</numToKeep>
+        <artifactDaysToKeep>-1</artifactDaysToKeep>
+        <artifactNumToKeep>-1</artifactNumToKeep>
+      </strategy>
+    </jenkins.model.BuildDiscarderProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <hudson.triggers.SCMTrigger>
+          <spec>H/5 * * * *</spec>
+          <ignorePostCommitHooks>false</ignorePostCommitHooks>
+        </hudson.triggers.SCMTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.45">
+    <script>#!groovy
+
+   node {
+
+    currentBuild.result = &quot;SUCCESS&quot;
+
+    try {
+
+            stage(&apos;Checkout&apos;){
+
+            env.NODE_ENV = &quot;Checkout&quot;
+            print &quot;[Stage] : ${env.NODE_ENV}&quot;
+
+            sh &quot;echo                                                       &gt; ${env.JOB_NAME}.log&quot;
+            sh &quot;echo [ Stage: ${env.NODE_ENV} ] :: Node: ${env.NODE_NAME} &gt;&gt; ${env.JOB_NAME}.log&quot; 
+	        sh &quot;echo                                                      &gt;&gt; ${env.JOB_NAME}.log&quot;
+            sh &quot;echo Checking out the code...                             &gt;&gt; ${env.JOB_NAME}.log&quot;
+
+            git url: &apos;https://github.com/skyakash/javaee7-simple-sample.git&apos;
+
+        //  checkout scm
+       }
+
+       stage(&apos;Build&apos;){
+
+            env.NODE_ENV = &quot;Build&quot;
+            print &quot;[Stage] : ${env.NODE_ENV}&quot;
+
+   	        sh &quot;echo                                                      &gt;&gt; ${env.JOB_NAME}.log&quot;
+            sh &quot;echo [ Stage: ${env.NODE_ENV} ] :: Node: ${env.NODE_NAME} &gt;&gt; ${env.JOB_NAME}.log&quot; 
+	        sh &quot;echo                                                      &gt;&gt; ${env.JOB_NAME}.log&quot;
+ 	        sh &quot;echo Building the code...                                 &gt;&gt; ${env.JOB_NAME}.log&quot;
+
+            sh &apos;export MAVEN_HOME=/opt/maven; cd ${WORKSPACE}; ${MAVEN_HOME}/bin/mvn clean install -s settings.xml&apos;
+
+       }
+
+    
+	
+	stage(&apos;Deploy&apos;){
+
+            env.NODE_ENV = &quot;Deploy&quot;
+            print &quot;[Stage] : ${env.NODE_ENV}&quot;
+
+	        sh &quot;echo                                                      &gt;&gt; ${env.JOB_NAME}.log&quot;
+            sh &quot;echo [ Stage: ${env.NODE_ENV} ] :: Node: ${env.NODE_NAME} &gt;&gt; ${env.JOB_NAME}.log&quot; 
+	        sh &quot;echo                                                      &gt;&gt; ${env.JOB_NAME}.log&quot;
+	        sh &quot;echo Deploying the code....                               &gt;&gt; ${env.JOB_NAME}.log&quot;
+
+	        sh &quot;cp ${WORKSPACE}/target/javaee7-simple-sample.war /opt/wildfly-8.2.0.Final/standalone/deployments/webapp.war&quot;
+			//sh &quot;echo Starting wildfly server....                          &gt;&gt; ${env.JOB_NAME}.log&quot;
+			//sh &quot;/opt/wildfly-8.2.0.Final/bin/standalone.sh -Djboss.socket.binding.port-offset=700 ${env.JOB_NAME}.log &amp;&quot;
+			//sh &quot;/root/scripts/start_wildfly.sh&quot;
+			sh &quot;sleep 5&quot;
+			sh &quot;curl http://127.0.0.1:8780/webapp/resources/persons&quot;
+			sh &quot;ps -eaf | grep wildfly&quot;
+			
+       }
+	   
+	stage(&apos;Test&apos;){
+
+            env.NODE_ENV = &quot;Test&quot;
+            print &quot;[Stage] : ${env.NODE_ENV}&quot;
+
+   	        sh &quot;echo                                                      &gt;&gt; ${env.JOB_NAME}.log&quot;
+            sh &quot;echo [ Stage: ${env.NODE_ENV} ] :: Node: ${env.NODE_NAME} &gt;&gt; ${env.JOB_NAME}.log&quot; 
+	        sh &quot;echo                                                      &gt;&gt; ${env.JOB_NAME}.log&quot;
+ 	        sh &quot;echo Testing the webapp...                                &gt;&gt; ${env.JOB_NAME}.log&quot;
+
+	        sh &quot;cd tests; rm -rf results&quot;
+	        sh &quot;cd tests; robot --nostatusrc -d results/sshtests robotsshdemo.robot     &quot;
+	        sh &quot;cd tests; robot --nostatusrc -d results/browsertests robotheadlessdemo.robot     &quot;
+	        sh &quot;cd tests; robot --nostatusrc -d results/httptests robotdemohttp.robot; exit 0 &quot;
+	        sh &quot;cd tests; rebot --nostatusrc --outputdir results --output output.xml results/sshtests/output.xml results/httptests/output.xml results/browsertests/output.xml&quot;
+	        sh &quot;cd tests; cp results/browsertests/*.png results/&quot;
+	        
+	        step([
+                $class : &apos;RobotPublisher&apos;,
+                outputPath : &apos;tests/results/&apos;,
+                outputFileName : &quot;*.xml&quot;,
+                disableArchiveOutput : false,
+                passThreshold : 100,
+                unstableThreshold: 0,
+                otherFiles : &quot;*.png&quot;,
+])
+	        
+       }
+	}
+
+    catch (err) {
+
+        currentBuild.result = &quot;FAILURE&quot;
+
+            mail    from: &apos;adeo@hpe.com&apos;,
+                 replyTo: &apos;adeo@hpe.com&apos;,
+                      to: &apos;adeo@hpe.com&apos;,
+                 subject: &quot;Jenkins:: Job Name: ${env.JOB_NAME} - Build#: ${env.BUILD_NUMBER} :: Status: ${currentBuild.result}&quot;,
+	                body: &quot;Project Build Failed ! You can find the error is here: ${env.BUILD_URL}&quot; 
+
+        throw err
+    }
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>
