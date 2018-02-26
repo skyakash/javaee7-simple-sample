@@ -71,7 +71,7 @@
 	        sh &quot;echo                                                      &gt;&gt; ${env.JOB_NAME}.log&quot;
 	        sh &quot;echo Deploying the code....                               &gt;&gt; ${env.JOB_NAME}.log&quot;
 
-	        sh &quot;cp ${WORKSPACE}/target/javaee7-simple-sample.war $JBOSS_HOME/standalone/deployments/webapp.war&quot;
+	        sh &quot;cp ${WORKSPACE}/target/javaee7-simple-sample.war ${env.JBOSS_HOME}/standalone/deployments/webapp.war&quot;
 			//sh &quot;echo Starting wildfly server....                          &gt;&gt; ${env.JOB_NAME}.log&quot;
 			//sh &quot;/opt/wildfly-8.2.0.Final/bin/standalone.sh -Djboss.socket.binding.port-offset=700 ${env.JOB_NAME}.log &amp;&quot;
 			//sh &quot;/root/scripts/start_wildfly.sh&quot;
