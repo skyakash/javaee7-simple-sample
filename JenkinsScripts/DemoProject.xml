@@ -115,9 +115,9 @@
 
         currentBuild.result = &quot;FAILURE&quot;
 
-            mail    from: &apos;adeo@hpe.com&apos;,
-                 replyTo: &apos;adeo@hpe.com&apos;,
-                      to: &apos;adeo@hpe.com&apos;,
+            mail    from: &apos;<your_email_id>&apos;,
+                 replyTo: &apos;<your_email_id>&apos;,
+                      to: &apos;<your_email_id>&apos;,
                  subject: &quot;Jenkins:: Job Name: ${env.JOB_NAME} - Build#: ${env.BUILD_NUMBER} :: Status: ${currentBuild.result}&quot;,
 	                body: &quot;Project Build Failed ! You can find the error is here: ${env.BUILD_URL}&quot; 
 
