@@ -20,7 +20,7 @@ Execute Command And Verify Output
     ...                The keyword returns the standard output by default.
     Execute Command  curl http://127.0.0.1:8780/webapp/resources/persons -o /tmp/output.xml
     ${output}=  Execute Command  xmllint /tmp/output.xml --pretty 1
-    Should Contain  ${output}  Amy
+    Should Contain  ${output}  Akash
 
 
 *** Keywords ***
